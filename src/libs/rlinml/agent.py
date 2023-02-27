@@ -1,3 +1,6 @@
+# https://pytorch.org/tutorials/intermediate/reinforcement_q_learning.html
+# Pytorchの公式チュートリアルをもとにしたコードになります。
+
 import os
 import sys
 #Topディレクトリをパスに追加
@@ -42,7 +45,6 @@ class Agent:
         self.model_type = model_type
 
         if self.model_type == "hybrid":
-
             self.c_depth, self.backend, self.shots = hyper_params['c_depth'], hyper_params['backend'], hyper_params['shots']
             self.policy_net = hybridmodel.QQN(self.n_observations, self.n_actions, self.c_depth, self.backend, \
                                                 self.shots, self.device, self.dtype).to(self.device)
@@ -56,7 +58,6 @@ class Agent:
             self.target_net.load_state_dict(self.policy_net.state_dict()) # targetネットワークと同期
 
         elif self.model_type == "classical":
-
             self.policy_net = classicalmodel.DQN(self.n_observations, self.n_actions).to(self.device)
             LR = hyper_params['LR']
             self.optimizer = optim.AdamW(self.policy_net.parameters(), lr=LR, amsgrad=True)
