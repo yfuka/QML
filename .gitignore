@@ -1,0 +1,5 @@
+# QMLはvenvが生成したディレクトリなので無視する
+/QML/
+__pycache__
+
+src/model_classical.bin
