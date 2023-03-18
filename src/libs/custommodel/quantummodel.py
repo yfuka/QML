@@ -30,7 +30,7 @@ class ReUploadingPQCLayer(nn.Module):
         self.thetas = nn.Parameter(torch.rand(self.re_uploading_PQC.num_parameters, dtype=self.dtype, device=self.device) * np.pi)
         
     def forward(self, xs: List[float]):
-        def f(x: torch.Tensor, thetas: torch.Tensor) -> np.ndarray:
+        def f(x: torch.Tensor, thetas: torch.Tensor) -> List[float]:
             input_x = x.tolist() * self.c_depth # re-uploadingの回数だけxを複製
             result = self.re_uploading_PQC.run(input_x, thetas.tolist())
             expectation_values = cal_expval.cal_expectation_values(result)
@@ -75,24 +75,29 @@ class DifferenceByParameterShift(Function):
             thetas[i] += dtheta # shift前に戻す
         diff_thetas = torch.tensor(diff_thetas, dtype=torch.float32, device=ctx.device)
 
-        dx = np.pi/2
-        diff_xs_list = []
-        xs = xs.detach() # auto_gradを使わず
-        for i in range(xs.size()[1]):
-            dxtensor = torch.zeros(xs.size()[1])
-            dxtensor[i] = dx
-            dxtensor = dxtensor.repeat(xs.size()[0], 1)
+        # 計算に時間がかかるため、input weightの更新をやらない（常にweight1をする）
+        # dx = np.pi/2
+        # diff_xs_list = []
+        # xs = xs.detach() # auto_gradを使わず
+        # print(xs)
+        # print(xs.size())
+        # for i in range(xs.size()[1]): # xsは(N,4)
+        #     dxtensor = torch.zeros(xs.size()[1]) # (1,4)
+        #     dxtensor[i] = dx
+        #     dxtensor = dxtensor.repeat(xs.size()[0], 1) # (N,4)
 
-            xs += dxtensor
-            forward = ctx.f_each(xs, thetas)
-            xs -= 2 * dxtensor
-            backward = ctx.f_each(xs, thetas)
-            gradient = 0.5 * (forward - backward)
-            diff_xs_list.append(torch.sum(grad_output * gradient, 1, keepdim=True)) # 3 * 2 -> 3 * 1
-            xs += dxtensor # shift前に戻す
+        #     xs += dxtensor
+        #     forward = ctx.f_each(xs, thetas)
+        #     xs -= 2 * dxtensor
+        #     backward = ctx.f_each(xs, thetas)
+        #     gradient = 0.5 * (forward - backward) # (N, 2)
+        #     diff_xs_list.append(torch.sum(grad_output * gradient, 1, keepdim=True)) # (N * 2) * (N, 2) -> N * 1
+        #     xs += dxtensor # shift前に戻す
 
-        diff_xs = torch.cat(diff_xs_list, dim=1)
-        diff_xs.to(device=ctx.device, dtype=torch.float32)
+        # diff_xs = torch.cat(diff_xs_list, dim=1) # N * 4
+        # diff_xs.to(device=ctx.device, dtype=torch.float32)
 
-        return None, None, diff_xs, diff_thetas
+        # return None, None, diff_xs, diff_thetas
+
+        return None, None, None, diff_thetas
 

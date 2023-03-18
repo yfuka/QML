@@ -147,6 +147,6 @@ class Agent:
             target_net_state_dict[key] = policy_net_state_dict[key]*TAU + target_net_state_dict[key]*(1-TAU)
         self.target_net.load_state_dict(target_net_state_dict)
 
-    def save_model(self, path=os.getcwd()):
+    def save_model(self, path=os.getcwd(), name=""):
         # Save the parameters of the model
-        torch.save(self.policy_net.state_dict(), path + "\model_" + self.model_type + ".bin")
+        torch.save(self.policy_net.state_dict(), path + "\model_" + self.model_type + "_" + name + ".bin")
